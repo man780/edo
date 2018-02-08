@@ -47,65 +47,6 @@ class MailsIncomingController extends Controller
         ]);
     }
 
-    public function actionFileUpload()
-    {
-        $model = new WhateverYourModel();
-
-        $imageFile = UploadedFile::getInstance($model, 'image');
-
-        $directory = Yii::getAlias('@web/files') . DIRECTORY_SEPARATOR . Yii::$app->session->id . DIRECTORY_SEPARATOR;
-        if (!is_dir($directory)) {
-            FileHelper::createDirectory($directory);
-        }
-
-        if ($imageFile) {
-            $uid = uniqid(time(), true);
-            $fileName = $uid . '.' . $imageFile->extension;
-            $filePath = $directory . $fileName;
-            if ($imageFile->saveAs($filePath)) {
-                $path = '/files/' . Yii::$app->session->id . DIRECTORY_SEPARATOR . $fileName;
-                return Json::encode([
-                    'files' => [
-                        [
-                            'name' => $fileName,
-                            'size' => $imageFile->size,
-                            'url' => $path,
-                            'thumbnailUrl' => $path,
-                            'deleteUrl' => 'file-delete?name=' . $fileName,
-                            'deleteType' => 'POST',
-                        ],
-                    ],
-                ]);
-            }
-        }
-
-        return '';
-    }
-
-    public function actionFileDelete($name)
-    {
-        $directory = Yii::getAlias('@web/files') . DIRECTORY_SEPARATOR . Yii::$app->session->id;
-        if (is_file($directory . DIRECTORY_SEPARATOR . $name)) {
-            unlink($directory . DIRECTORY_SEPARATOR . $name);
-        }
-
-        $files = FileHelper::findFiles($directory);
-        $output = [];
-        foreach ($files as $file) {
-            $fileName = basename($file);
-            $path = '/files/' . Yii::$app->session->id . DIRECTORY_SEPARATOR . $fileName;
-            $output['files'][] = [
-                'name' => $fileName,
-                'size' => filesize($file),
-                'url' => $path,
-                'thumbnailUrl' => $path,
-                'deleteUrl' => 'file-delete?name=' . $fileName,
-                'deleteType' => 'POST',
-            ];
-        }
-        return Json::encode($output);
-    }
-
     /**
      * Displays a single MailsIncoming model.
      * @param integer $id
@@ -128,8 +69,24 @@ class MailsIncomingController extends Controller
     {
         $model = new MailsIncoming();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if ($model->load(Yii::$app->request->post()) ) {
+            $model->files = UploadedFile::getInstances($model, 'files');
+
+            if($model->save()){
+                if(is_array($model->files)){
+                    foreach ($model->files as $file){
+                        $directory = Yii::getAlias('@app/web/files/') . DIRECTORY_SEPARATOR . $model->id . DIRECTORY_SEPARATOR;
+                        if (!is_dir($directory)) {
+                            FileHelper::createDirectory($directory);
+                        }
+                        $file->saveAs($directory.$file->baseName . '.' . $file->extension);
+                    }
+                }
+                return $this->redirect(['view', 'id' => $model->id]);
+            }else{
+                vd($model->errors);
+            }
+
         }
 
         return $this->render('create', [
