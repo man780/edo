@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "mails_outgoing".
@@ -26,6 +27,7 @@ use Yii;
  */
 class MailsOutgoing extends \yii\db\ActiveRecord
 {
+    public $files;
     /**
      * @inheritdoc
      */
@@ -41,7 +43,7 @@ class MailsOutgoing extends \yii\db\ActiveRecord
     {
         return [
             [['date', 'dcreated'], 'safe'],
-            [['dcreated', 'bycreated'], 'required'],
+            //[['dcreated', 'bycreated'], 'required'],
             [['bycreated'], 'integer'],
             [['num', 'organization', 'description', 'result'], 'string', 'max' => 255],
             [['bycreated'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['bycreated' => 'id']],
@@ -63,6 +65,17 @@ class MailsOutgoing extends \yii\db\ActiveRecord
             'dcreated' => Yii::t('app', 'Dcreated'),
             'bycreated' => Yii::t('app', 'Bycreated'),
         ];
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            $this->bycreated = Yii::$app->user->id;
+            $this->dcreated = date('Y-m-d H:i:s', time()+2*3600);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -119,5 +132,10 @@ class MailsOutgoing extends \yii\db\ActiveRecord
     public function getUsers()
     {
         return $this->hasMany(User::className(), ['id' => 'user_id'])->viaTable('mails_outgoing_user', ['mails_outgoing_id' => 'id']);
+    }
+
+    public function getUsersAll()
+    {
+        return ArrayHelper::map(User::find()->all(), 'id', 'username');
     }
 }

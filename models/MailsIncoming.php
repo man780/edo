@@ -31,6 +31,11 @@ use yii\helpers\ArrayHelper;
 class MailsIncoming extends \yii\db\ActiveRecord
 {
     public $files;
+    public $types = [
+        'Маълумот учун' => 'Маълумот учун',
+        'Қатнашиш учун' => 'Қатнашиш учун',
+        'Кўриб чиқинг' => 'Кўриб чиқинг',
+    ];
     /**
      * @inheritdoc
      */
@@ -45,7 +50,8 @@ class MailsIncoming extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['in_date', 'out_date'], 'required'],
+            [['in_date', 'out_date', 'organization'], 'required'],
+            [['in_date', 'out_date', 'deadline', 'type'], 'safe'],
             //[['dcreated', 'bycreated'], 'required'],
             //[['bycreated'], 'integer'],
             [['in_num', 'out_num', 'organization', 'description', 'result'], 'string', 'max' => 255],
@@ -68,6 +74,8 @@ class MailsIncoming extends \yii\db\ActiveRecord
             'description' => Yii::t('app', 'Description'),
             'deadline' => Yii::t('app', 'Deadline'),
             'result' => Yii::t('app', 'Result'),
+            'events' => Yii::t('app', 'Events'),
+            'files' => Yii::t('app', 'Files'),
             'dcreated' => Yii::t('app', 'Dcreated'),
             'bycreated' => Yii::t('app', 'Bycreated'),
         ];

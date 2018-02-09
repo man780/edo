@@ -21,4 +21,15 @@ return [
     'Date' => 'Сана',
     'Datetime' => 'Вақти',
     'Place' => 'Жойи',
+    'Type' => 'Тури',
+    'Files' => 'Файллар',
+
+    'Mails Incomings' => 'Кирувчи хатлар',
+    'Mails Outgoings' => 'Чиқувчи хатлар',
+    'Events' => 'Тадбирлар',
+    'Create Mails Outgoing' => 'Чиқиш хатини рўйхатга олиш',
+    'Create Mails Incoming' => 'Кириш хатини рўйхатга олиш',
+    'Create Events' => 'Тадбир яратиш',
+
+
 ];

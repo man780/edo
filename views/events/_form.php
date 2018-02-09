@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use kartik\datetime\DateTimePicker;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Events */
@@ -14,15 +15,17 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'description')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'description')->textarea() ?>
 
-    <?= $form->field($model, 'datetime')->textInput() ?>
+    <?= $form->field($model, 'datetime')->widget(DateTimePicker::classname(), [
+        'language' => 'uz',
+        'pluginOptions' => [
+            'todayHighlight' => true,
+        ],
+    ]); ?>
 
     <?= $form->field($model, 'place')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'dcreated')->textInput() ?>
-
-    <?= $form->field($model, 'bycreated')->textInput() ?>
 
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Save'), ['class' => 'btn btn-success']) ?>

@@ -2,9 +2,15 @@
 
 namespace app\controllers;
 
+use app\models\Events;
+use app\models\ExecutorAuthority;
+use app\models\MailsIncomingEvents;
+use app\models\MailsIncomingUser;
+use app\models\User;
 use Yii;
 use app\models\MailsIncoming;
 use app\models\MailsIncomingSearch;
+use yii\base\Event;
 use yii\helpers\FileHelper;
 use yii\helpers\Json;
 use yii\web\Controller;
@@ -70,27 +76,47 @@ class MailsIncomingController extends Controller
         $model = new MailsIncoming();
 
         if ($model->load(Yii::$app->request->post()) ) {
+            $post = Yii::$app->request->post();
             $model->files = UploadedFile::getInstances($model, 'files');
-
+            //vd($post);
             if($model->save()){
+                foreach ($post['executors'] as $user){
+                    $mailsIncomingUser = new MailsIncomingUser();
+                    $mailsIncomingUser->user_id = $user;
+                    $mailsIncomingUser->mails_incoming_id = $model->id;
+                    $mailsIncomingUser->created_at = date('Y-m-d H:i:s');
+                    $mailsIncomingUser->save();
+                }
+                foreach ($post['MailsIncoming']['events'] as $event){
+                    $mailsIncomingEvents = new MailsIncomingEvents();
+                    $mailsIncomingEvents->events_id = $event;
+                    $mailsIncomingEvents->mails_incoming_id = $model->id;
+                    $mailsIncomingEvents->save();
+                }
                 if(is_array($model->files)){
-                    foreach ($model->files as $file){
-                        $directory = Yii::getAlias('@app/web/files/') . DIRECTORY_SEPARATOR . $model->id . DIRECTORY_SEPARATOR;
+                    foreach ($model->files as $key => $file){
+                        $directory = Yii::getAlias('@app/web/files/in/') . DIRECTORY_SEPARATOR . $model->id . DIRECTORY_SEPARATOR;
                         if (!is_dir($directory)) {
                             FileHelper::createDirectory($directory);
                         }
-                        $file->saveAs($directory.$file->baseName . '.' . $file->extension);
+                        $file->saveAs($directory. ($key+1) . '.' . $file->extension);
                     }
                 }
                 return $this->redirect(['view', 'id' => $model->id]);
             }else{
                 vd($model->errors);
             }
-
         }
-
+        //$user = new MailsIncoming();
+        //vd($user->getUsersAll());
+        $executors = new ExecutorAuthority();
+        $events = new Events();
+        $count = MailsIncoming::find()->count();
+        $model->in_num = ($count+1).'/'.date('y');
         return $this->render('create', [
             'model' => $model,
+            'data' => $executors->getExecutorsAll(),
+            'events' => $events->getEventsAll(),
         ]);
     }
 
@@ -109,8 +135,11 @@ class MailsIncomingController extends Controller
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
+        $user = new MailsIncoming();
+        $executors = $user->getUsersAll();
         return $this->render('update', [
             'model' => $model,
+            'executors' => $executors,
         ]);
     }
 

@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "events".
@@ -37,11 +38,21 @@ class Events extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['datetime', 'dcreated'], 'safe'],
-            [['bycreated'], 'integer'],
+            [['name', 'datetime', 'dcreated'], 'safe'],
             [['name', 'description', 'place'], 'string', 'max' => 255],
             [['bycreated'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['bycreated' => 'id']],
         ];
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            $this->bycreated = Yii::$app->user->id;
+            $this->dcreated = date('Y-m-d H:i:s', time()+2*3600);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -98,5 +109,10 @@ class Events extends \yii\db\ActiveRecord
     public function getMailsOutgoings()
     {
         return $this->hasMany(MailsOutgoing::className(), ['id' => 'mails_outgoing_id'])->viaTable('mails_outgoing_events', ['events_id' => 'id']);
+    }
+
+    public function getEventsAll()
+    {
+        return ArrayHelper::map(self::find()->all(), 'id', 'name');
     }
 }
