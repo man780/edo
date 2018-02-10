@@ -95,7 +95,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?foreach($files as $index => $file):?>
                     <div>
                         <?$name = substr($file, strrpos($file, '/') + 1);
-                        echo Html::a($name, \yii\helpers\Url::base().'/web'.$name)?>
+                        echo Html::a($name, \yii\helpers\Url::base().'/web'.$name, ['target' => '_blank'])?>
                     </div>
                 <?endforeach;?>
                 <?else:?>
