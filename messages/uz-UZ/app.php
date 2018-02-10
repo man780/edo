@@ -23,13 +23,24 @@ return [
     'Place' => 'Жойи',
     'Type' => 'Тури',
     'Files' => 'Файллар',
+    'Structure' => 'Бўлим',
+    'Mini Name' => 'Қисқача номи',
+    'Details' => 'Умуий маълумот/ делатли',
+    'Phones' => 'Телефонлар',
+    'Emails' => 'Эл. манзил',
+    'Address' => 'Манзил',
+    'to Mail Incoming' => 'Кирувчи хатга асосан',
 
     'Mails Incomings' => 'Кирувчи хатлар',
     'Mails Outgoings' => 'Чиқувчи хатлар',
     'Events' => 'Тадбирлар',
+    'Structures' => 'Бўлимлар',
+    'Executor Authorities' => 'Ташкилотлар',
     'Create Mails Outgoing' => 'Чиқиш хатини рўйхатга олиш',
     'Create Mails Incoming' => 'Кириш хатини рўйхатга олиш',
     'Create Events' => 'Тадбир яратиш',
+    'Create Structure' => 'Бўлим қўшиш',
+    'Create Executor Authority' => 'Ташкилот қўшиш',
 
 
 ];

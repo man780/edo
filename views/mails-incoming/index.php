@@ -15,9 +15,11 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
+    <?if(Yii::$app->user->id == 2):?>
     <p>
         <?= Html::a(Yii::t('app', 'Create Mails Incoming'), ['create'], ['class' => 'btn btn-success']) ?>
     </p>
+    <?endif;?>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -32,15 +34,21 @@ $this->params['breadcrumbs'][] = $this->title;
             'out_date',
             'organization',
             'description',
-            'deadline',
-            'result',
+            //'deadline',
+            [
+                'attribute' => 'deadline',
+                //'value' => '',
+                // ...
+            ],
+            //'result',
 
             //'dcreated',
             //'bycreated',
 
             //['class' => 'yii\grid\ActionColumn'],
             ['class' => 'yii\grid\ActionColumn',
-                'template' => '{view}',
+                'template' => '{view} {link}',
+
             ],
         ],
     ]); ?>

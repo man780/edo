@@ -5,6 +5,10 @@ use yii\widgets\ActiveForm;
 use kartik\select2\Select2;
 use kartik\datetime\DateTimePicker;
 
+use app\models\Structure;
+use app\models\MailsIncoming;
+use yii\helpers\ArrayHelper;
+
 /* @var $this yii\web\View */
 /* @var $model app\models\MailsOutgoing */
 /* @var $form yii\widgets\ActiveForm */
@@ -23,15 +27,48 @@ $script = <<< JS
         if($('.executor').length > 1)
         $('.executor:last').remove();
     });
+    
+    $('.structure').change(function() {
+        var v = $(this).val();
+        var num = $('.num').val();
+        var num_arr = num.split('-');
+        if(num_arr.length > 1 ){
+            $('.num').val(v+'-'+num_arr[1]);
+        }else{
+            $('.num').val(v+'-'+num);
+        }
+    });
 JS;
 $this->registerJs($script);
+
+$mailsIn = MailsIncoming::find()->all();
+$mailsInList = ArrayHelper::map($mailsIn,'id','in_num');
 ?>
 
 <div class="mails-outgoing-form">
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'num')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'mailIncoming')->widget(Select2::classname(), [
+        'data' => $mailsInList,
+        'language' => 'uz',
+        'options' => ['placeholder' => 'Кирувчи хат рақамини танланг ...'],
+        'pluginOptions' => [
+            'allowClear' => true,
+            'multiple' => true,
+        ],
+    ]) ?>
+
+    <?
+    $structures = Structure::find()->all();
+    $list = ArrayHelper::map($structures,'num','name');
+    $params = [
+        'prompt' => 'Бўлимни танланг...',
+        'class'=>'form-control structure',
+    ];
+    echo $form->field($model, 'structure_id')->dropDownList($list,$params);?>
+
+    <?= $form->field($model, 'num')->textInput(['maxlength' => true,  'class' => 'form-control num']) ?>
 
     <?= $form->field($model, 'date')->widget(DateTimePicker::classname(), [
         'language' => 'uz',
@@ -49,7 +86,7 @@ $this->registerJs($script);
         ],
     ]) ?>
 
-    <?= $form->field($model, 'description')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'description')->textarea(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'result')->textInput(['maxlength' => true]) ?>
 

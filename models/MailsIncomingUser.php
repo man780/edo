@@ -10,6 +10,7 @@ use Yii;
  * @property int $mails_incoming_id
  * @property int $user_id
  * @property string $created_at
+ * @property string $is_viewed
  *
  * @property User $user
  * @property MailsIncoming $mailsIncoming
@@ -32,7 +33,7 @@ class MailsIncomingUser extends \yii\db\ActiveRecord
         return [
             [['mails_incoming_id', 'user_id'], 'required'],
             [['mails_incoming_id', 'user_id'], 'integer'],
-            [['created_at'], 'safe'],
+            [['created_at', 'is_viewed'], 'safe'],
             [['mails_incoming_id', 'user_id'], 'unique', 'targetAttribute' => ['mails_incoming_id', 'user_id']],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::className(), 'targetAttribute' => ['user_id' => 'id']],
             [['mails_incoming_id'], 'exist', 'skipOnError' => true, 'targetClass' => MailsIncoming::className(), 'targetAttribute' => ['mails_incoming_id' => 'id']],

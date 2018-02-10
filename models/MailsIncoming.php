@@ -17,6 +17,7 @@ use yii\helpers\ArrayHelper;
  * @property string $description
  * @property string $deadline
  * @property string $result
+ * @property string $status
  * @property string $dcreated
  * @property int $bycreated
  *
@@ -31,10 +32,17 @@ use yii\helpers\ArrayHelper;
 class MailsIncoming extends \yii\db\ActiveRecord
 {
     public $files;
+    public $mailOutgoing;
     public $types = [
         'Маълумот учун' => 'Маълумот учун',
         'Қатнашиш учун' => 'Қатнашиш учун',
         'Кўриб чиқинг' => 'Кўриб чиқинг',
+    ];
+    public $statuses = [
+        null => 'Кўрилмаган',
+        1 => 'Кўрилган (Жараёнда)',
+        2 => 'Бажариш босилган',
+        3 => 'Тасдиқланган',
     ];
     /**
      * @inheritdoc
@@ -50,8 +58,8 @@ class MailsIncoming extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['in_date', 'out_date', 'organization'], 'required'],
-            [['in_date', 'out_date', 'deadline', 'type'], 'safe'],
+            [['in_date', 'out_date', 'organization', 'structure_id'], 'required'],
+            [['in_date', 'out_date', 'deadline', 'type', 'structure_id'], 'safe'],
             //[['dcreated', 'bycreated'], 'required'],
             //[['bycreated'], 'integer'],
             [['in_num', 'out_num', 'organization', 'description', 'result'], 'string', 'max' => 255],
@@ -66,6 +74,7 @@ class MailsIncoming extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('app', 'ID'),
+            'structure_id' => Yii::t('app', 'Structure'),
             'in_num' => Yii::t('app', 'In Num'),
             'in_date' => Yii::t('app', 'In Date'),
             'out_num' => Yii::t('app', 'Out Num'),
@@ -114,6 +123,14 @@ class MailsIncoming extends \yii\db\ActiveRecord
     public function getEvents()
     {
         return $this->hasMany(Events::className(), ['id' => 'events_id'])->viaTable('mails_incoming_events', ['mails_incoming_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getStatus0($status)
+    {
+        return $this->statuses[$status];
     }
 
     /**

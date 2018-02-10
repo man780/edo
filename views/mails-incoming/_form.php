@@ -5,6 +5,10 @@ use yii\widgets\ActiveForm;
 use kartik\datetime\DateTimePicker;
 use kartik\select2\Select2;
 
+use app\models\Structure;
+use app\models\MailsOutgoing;
+use yii\helpers\ArrayHelper;
+
 /* @var $this yii\web\View */
 /* @var $model app\models\MailsIncoming */
 /* @var $form yii\widgets\ActiveForm */
@@ -26,8 +30,23 @@ $script = <<< JS
         if($('.executor').length > 1)
         $('.executor:last').remove();
     });
+    
+    $('.structure').change(function() {
+        var v = $(this).val();
+        var in_num = $('.in_num').val();
+        var in_num_arr = in_num.split('-');
+        //console.log(in_num_arr.length);
+        if(in_num_arr.length > 1 ){
+            $('.in_num').val(v+'-'+in_num_arr[1]);
+        }else{
+            $('.in_num').val(v+'-'+in_num);
+        }
+    });
 JS;
 $this->registerJs($script);
+
+$mailsOut = MailsOutgoing::find()->all();
+$mailsOutList = ArrayHelper::map($mailsOut,'id','num');
 ?>
 
 <div class="mails-incoming-form">
@@ -39,7 +58,16 @@ $this->registerJs($script);
         ],
     ]); ?>
 
-    <?= $form->field($model, 'in_num')->textInput(['maxlength' => true]) ?>
+    <?
+    $structures = Structure::find()->all();
+    $list = ArrayHelper::map($structures,'num','name');
+    $params = [
+        'prompt' => 'Бўлимни танланг...',
+        'class'=>'form-control structure',
+    ];
+    echo $form->field($model, 'structure_id')->dropDownList($list,$params);?>
+
+    <?= $form->field($model, 'in_num')->textInput(['maxlength' => true, 'class' => 'form-control in_num']) ?>
 
     <?= $form->field($model, 'in_date')->widget(DateTimePicker::classname(), [
         'language' => 'uz',
@@ -109,6 +137,16 @@ $this->registerJs($script);
         <a href="javascript:void(0);" class="btn btn-success add-executor">+</a>
         <a href="javascript:void(0);" class="btn btn-danger remove-executor">-</a>
     </div>
+
+    <?= $form->field($model, 'mailOutgoing')->widget(Select2::classname(), [
+        'data' => $mailsOutList,
+        'language' => 'uz',
+        'options' => ['placeholder' => 'Чиқувчи хат рақамини танланг ...'],
+        'pluginOptions' => [
+            'allowClear' => true,
+            'multiple' => true,
+        ],
+    ]) ?>
 
     <?= $form->field($model, 'files[]')->fileInput(['multiple' => true]);?>
 

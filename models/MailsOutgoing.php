@@ -28,6 +28,7 @@ use yii\helpers\ArrayHelper;
 class MailsOutgoing extends \yii\db\ActiveRecord
 {
     public $files;
+    public $mailIncoming;
     /**
      * @inheritdoc
      */
@@ -42,7 +43,7 @@ class MailsOutgoing extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['date', 'dcreated'], 'safe'],
+            [['date', 'dcreated', 'mailIncoming', 'structure_id'], 'safe'],
             //[['dcreated', 'bycreated'], 'required'],
             [['bycreated'], 'integer'],
             [['num', 'organization', 'description', 'result'], 'string', 'max' => 255],
@@ -57,11 +58,15 @@ class MailsOutgoing extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('app', 'ID'),
+            'mailIncoming' => Yii::t('app', 'to Mail Incoming'),
+            'structure_id' => Yii::t('app', 'Structure'),
             'num' => Yii::t('app', 'Num'),
             'date' => Yii::t('app', 'Date'),
             'organization' => Yii::t('app', 'Organization'),
             'description' => Yii::t('app', 'Description'),
             'result' => Yii::t('app', 'Result'),
+            'files' => Yii::t('app', 'Files'),
+            'events' => Yii::t('app', 'Events'),
             'dcreated' => Yii::t('app', 'Dcreated'),
             'bycreated' => Yii::t('app', 'Bycreated'),
         ];

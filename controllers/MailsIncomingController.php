@@ -5,12 +5,14 @@ namespace app\controllers;
 use app\models\Events;
 use app\models\ExecutorAuthority;
 use app\models\MailsIncomingEvents;
+use app\models\MailsIncomingMailsOutgoing;
 use app\models\MailsIncomingUser;
 use app\models\User;
 use Yii;
 use app\models\MailsIncoming;
 use app\models\MailsIncomingSearch;
 use yii\base\Event;
+use yii\filters\AccessControl;
 use yii\helpers\FileHelper;
 use yii\helpers\Json;
 use yii\web\Controller;
@@ -29,6 +31,15 @@ class MailsIncomingController extends Controller
     public function behaviors()
     {
         return [
+            'access' => [
+                'class' => AccessControl::className(),
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                ],
+            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
@@ -54,16 +65,96 @@ class MailsIncomingController extends Controller
     }
 
     /**
-     * Displays a single MailsIncoming model.
+ * Displays a single MailsIncoming model.
+ * @param integer $id
+ * @return mixed
+ * @throws NotFoundHttpException if the model cannot be found
+ */
+    public function actionView($id)
+    {
+        $model = $this->findModel($id);
+
+        foreach($model->users as $user){
+            if($user->id == Yii::$app->user->id && $model->status == null){
+                $model->status = 1;
+                $mailsUser = MailsIncomingUser::find()->where(['user_id' => $user->id, 'mails_incoming_id' => $model->id])->one();
+                $mailsUser->is_viewed = 1;
+                if($mailsUser->save() && $model->save()){
+                    break;
+                }else{
+                    vd([$model->errors, $mailsUser->errors]);
+                }
+            }elseif ($user->id == Yii::$app->user->id){
+                $mailsUser = MailsIncomingUser::find()->where(['user_id' => $user->id, 'mails_incoming_id' => $model->id])->one();
+                $mailsUser->is_viewed = 1;
+                if($mailsUser->save() ){
+                    break;
+                }else{
+                    vd($mailsUser->errors);
+                }
+            }
+        }
+
+        return $this->render('view', [
+            'model' => $model,
+        ]);
+    }
+
+    /**
+     * Do a single MailsIncoming model.
      * @param integer $id
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
+    public function actionDone($id)
     {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
+        $model = $this->findModel($id);
+
+        //Проверка на сделано
+        $flag = 0;
+        foreach ($model->mailsIncomingUsers as $user){
+            if(Yii::$app->user->id == $user->user_id){
+                $flag++;
+            }
+        }
+        if ($flag < count($model->mailsIncomingUsers)){
+            throw new \yii\web\HttpException(403, 'Сизда бу амални бажариш учун доступ йўқ!');
+        }
+
+        if ($model->load(Yii::$app->request->post()) ) {
+            $model->status = 2;
+            if($model->save()){
+                return $this->redirect(['view', 'id' => $model->id]);
+            }else{
+                vd($model->errors);
+            }
+        }
+
+        return $this->render('done', [
+            'model' => $model,
         ]);
+    }
+
+    /**
+     * Confirms a single MailsIncoming model.
+     * @param integer $id
+     * @return mixed
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionConfirm($id)
+    {
+        if (Yii::$app->user->id != 3){
+            throw new \yii\web\HttpException(403, 'Сизда бу амални бажариш учун доступ йўқ!');
+        }
+
+        $model = $this->findModel($id);
+        $model->status = 3;
+        if($model->save()){
+            return $this->redirect(['view', 'id' => $model->id]);
+        }else{
+            vd($model->errors);
+        }
+
     }
 
     /**
@@ -73,6 +164,9 @@ class MailsIncomingController extends Controller
      */
     public function actionCreate()
     {
+        if(Yii::$app->user->id != 2){
+            throw new \yii\web\HttpException(403, 'Сизда бу амални бажариш учун доступ йўқ!');
+        }
         $model = new MailsIncoming();
 
         if ($model->load(Yii::$app->request->post()) ) {
@@ -80,6 +174,7 @@ class MailsIncomingController extends Controller
             $model->files = UploadedFile::getInstances($model, 'files');
             //vd($post);
             if($model->save()){
+                if(is_array($post['executors']))
                 foreach ($post['executors'] as $user){
                     $mailsIncomingUser = new MailsIncomingUser();
                     $mailsIncomingUser->user_id = $user;
@@ -87,12 +182,21 @@ class MailsIncomingController extends Controller
                     $mailsIncomingUser->created_at = date('Y-m-d H:i:s');
                     $mailsIncomingUser->save();
                 }
+                if(is_array($post['MailsIncoming']['events']))
                 foreach ($post['MailsIncoming']['events'] as $event){
                     $mailsIncomingEvents = new MailsIncomingEvents();
                     $mailsIncomingEvents->events_id = $event;
                     $mailsIncomingEvents->mails_incoming_id = $model->id;
                     $mailsIncomingEvents->save();
                 }
+                if (is_array($post['MailsIncoming']['mailOutgoing']))
+                    foreach ($post['MailsIncoming']['mailOutgoing'] as $mailOut){
+                        $mailsInOut = new MailsIncomingMailsOutgoing();
+                        $mailsInOut->mails_incoming_id = $model->id;
+                        $mailsInOut->mails_outgoing_id = $mailOut;
+                        $mailsInOut->direction = 2;
+                        $mailsInOut->save();
+                    }
                 if(is_array($model->files)){
                     foreach ($model->files as $key => $file){
                         $directory = Yii::getAlias('@app/web/files/in/') . DIRECTORY_SEPARATOR . $model->id . DIRECTORY_SEPARATOR;
@@ -129,6 +233,8 @@ class MailsIncomingController extends Controller
      */
     public function actionUpdate($id)
     {
+        throw new \yii\web\HttpException(403, 'Сизда бу амални бажариш учун доступ йўқ!');
+
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {

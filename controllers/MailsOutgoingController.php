@@ -4,11 +4,13 @@ namespace app\controllers;
 
 use app\models\Events;
 use app\models\ExecutorAuthority;
+use app\models\MailsIncomingMailsOutgoing;
 use app\models\MailsOutgoingEvents;
 use app\models\MailsOutgoingUser;
 use Yii;
 use app\models\MailsOutgoing;
 use app\models\MailsOutgoingSearch;
+use yii\filters\AccessControl;
 use yii\helpers\FileHelper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -26,6 +28,15 @@ class MailsOutgoingController extends Controller
     public function behaviors()
     {
         return [
+            'access' => [
+                'class' => AccessControl::className(),
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                ],
+            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
@@ -75,7 +86,9 @@ class MailsOutgoingController extends Controller
         if ($model->load(Yii::$app->request->post())) {
             $post = Yii::$app->request->post();
             $model->files = UploadedFile::getInstances($model, 'files');
+            //vd($model->attributes);
             if($model->save()){
+                if(is_array($post['executors']))
                 foreach ($post['executors'] as $user){
                     $mailsOutgoingUser = new MailsOutgoingUser();
                     $mailsOutgoingUser->user_id = $user;
@@ -83,12 +96,21 @@ class MailsOutgoingController extends Controller
                     $mailsOutgoingUser->created_at = date('Y-m-d H:i:s');
                     $mailsOutgoingUser->save();
                 }
+                if (is_array($post['MailsOutgoing']['events']))
                 foreach ($post['MailsOutgoing']['events'] as $event){
                     $mailsOutgoingEvents = new MailsOutgoingEvents();
                     $mailsOutgoingEvents->events_id = $event;
                     $mailsOutgoingEvents->mails_outgoing_id = $model->id;
                     $mailsOutgoingEvents->save();
                 }
+                if (is_array($post['MailsOutgoing']['mailIncoming']))
+                    foreach ($post['MailsOutgoing']['mailIncoming'] as $mailIn){
+                        $mailsInOut = new MailsIncomingMailsOutgoing();
+                        $mailsInOut->mails_incoming_id = $mailIn;
+                        $mailsInOut->mails_outgoing_id = $model->id;
+                        $mailsInOut->direction = 1;
+                        $mailsInOut->save();
+                    }
                 if(is_array($model->files)){
                     foreach ($model->files as $key => $file){
                         $directory = Yii::getAlias('@app/web/files/out/') . DIRECTORY_SEPARATOR . $model->id . DIRECTORY_SEPARATOR;
@@ -99,7 +121,10 @@ class MailsOutgoingController extends Controller
                     }
                 }
                 return $this->redirect(['view', 'id' => $model->id]);
+            }else{
+                vd($model->errors);
             }
+
 
         }
 

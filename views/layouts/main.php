@@ -42,12 +42,17 @@ AppAsset::register($this);
             ['label' => 'Кирувчи хатлар', 'url' => ['/mails-incoming/index']],
             ['label' => 'Чиқувчи хатлар', 'url' => ['/mails-outgoing/index']],
             ['label' => 'Тадбирлар', 'url' => ['/events/index']],
+            ['label' => 'Маълумотнома', 'items' => [
+                    ['label' => 'Ташкилотлар', 'url' => ['/executor-authority/index']],
+                    ['label' => 'Бўлимлар', 'url' => ['/structure/index']],
+                ]
+            ],
             Yii::$app->user->isGuest ?
                 ['label' => 'Кириш', 'url' => ['/user/security/login']] :
                 ['label' => 'Чиқиш (' . Yii::$app->user->identity->username . ')',
                     'url' => ['/user/security/logout'],
                     'linkOptions' => ['data-method' => 'post']],
-            ['label' => 'Register', 'url' => ['/user/registration/register'], 'visible' => Yii::$app->user->isGuest]
+
         ],
     ]);
     NavBar::end();

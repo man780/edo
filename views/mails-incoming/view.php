@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\MailsIncoming */
@@ -14,8 +15,34 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
+    <?//vd($model->mailsIncomingMailsOutgoings)?>
+    <?if(count($model->mailsIncomingMailsOutgoings)>0):?>
+        <div class="well">
+            <h3>Хатлар ёзишмаси</h3>
+            <?foreach($model->mailsIncomingMailsOutgoings as $mailInOut):?>
+                <?if($mailInOut->direction == 1):?>
+                    <p>
+                        <a href="<?=Url::to(['mails-incoming/view', 'id' => $mailInOut->mails_incoming_id])?>" class="label label-success">
+                            <?=$mailInOut->mailsIncoming->in_num?>
+                        </a>
+                        <?=$mailInOut->mailsIncoming->in_date?> <span class="label label-success"><</span>
+                    </p>
+                <?else:?>
+                    <p>
+                        <a href="<?=Url::to(['mails-outgoing/view', 'id' => $mailInOut->mails_outgoing_id])?>" class="label label-warning">
+                            <?=$mailInOut->mailsOutgoing->num?>
+                        </a>
+                        <?=$mailInOut->mailsOutgoing->date?> <span class="label label-warning">></span>
+                    </p>
+                <?endif;?>
+            <?endforeach;?>
+        </div>
+    <?endif;?>
+
     <p>
-        <?//= Html::a(Yii::t('app', 'Update'), ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+        <?if($model->status == 2 && Yii::$app->user->id == 3):?>
+            <?= Html::a(Yii::t('app', 'Тасдиқлаш'), ['confirm', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+        <?endif;?>
         <?/*= Html::a(Yii::t('app', 'Delete'), ['delete', 'id' => $model->id], [
             'class' => 'btn btn-danger',
             'data' => [
@@ -38,6 +65,10 @@ $this->params['breadcrumbs'][] = $this->title;
             'deadline',
             'type',
             'result',
+            [// the owner name of the model
+                'attribute' => 'status',
+                'value' => $model->getStatus0($model->status),
+            ],
             //'dcreated',
             //'bycreated',
         ],
@@ -46,9 +77,12 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="col-md-4">
             <div class="well">
                 <h3>Ижрочилар</h3>
-                <?foreach($model->users as $user):?>
-                    <div>
-                        <?=$user->username?>
+                <?foreach($model->mailsIncomingUsers as $user):?>
+                    <div class="alert alert-<?=($user->is_viewed == 0)?'danger':'info'?>">
+                        <?=$user->user->username?>
+                        <?if(Yii::$app->user->id == $user->user_id && $model->status == 1):?>
+                        <?= Html::a(Yii::t('app', 'Бажариш'), ['done', 'id' => $model->id], ['class' => 'btn btn-success']) ?>
+                        <?endif;?>
                     </div>
                 <?endforeach;?>
             </div>

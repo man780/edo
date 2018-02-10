@@ -10,6 +10,7 @@ use Yii;
  * @property int $mails_incoming_id
  * @property int $mails_outgoing_id
  * @property string $created_at
+ * @property string $direction
  *
  * @property MailsOutgoing $mailsOutgoing
  * @property MailsIncoming $mailsIncoming
@@ -32,7 +33,7 @@ class MailsIncomingMailsOutgoing extends \yii\db\ActiveRecord
         return [
             [['mails_incoming_id', 'mails_outgoing_id'], 'required'],
             [['mails_incoming_id', 'mails_outgoing_id'], 'integer'],
-            [['created_at'], 'safe'],
+            [['created_at', 'direction'], 'safe'],
             [['mails_incoming_id', 'mails_outgoing_id'], 'unique', 'targetAttribute' => ['mails_incoming_id', 'mails_outgoing_id']],
             [['mails_outgoing_id'], 'exist', 'skipOnError' => true, 'targetClass' => MailsOutgoing::className(), 'targetAttribute' => ['mails_outgoing_id' => 'id']],
             [['mails_incoming_id'], 'exist', 'skipOnError' => true, 'targetClass' => MailsIncoming::className(), 'targetAttribute' => ['mails_incoming_id' => 'id']],
@@ -48,7 +49,18 @@ class MailsIncomingMailsOutgoing extends \yii\db\ActiveRecord
             'mails_incoming_id' => Yii::t('app', 'Mails Incoming ID'),
             'mails_outgoing_id' => Yii::t('app', 'Mails Outgoing ID'),
             'created_at' => Yii::t('app', 'Created At'),
+            'direction' => Yii::t('app', 'Direction'),
         ];
+    }
+
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            $this->created_at = date('Y-m-d H:i:s', time()+2*3600);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
