@@ -35,6 +35,7 @@ class MailsIncomingController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
+                        'actions' => ['index', 'create', 'update', 'delete', 'view', 'done', 'confirm'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],

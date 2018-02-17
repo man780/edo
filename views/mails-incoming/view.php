@@ -112,12 +112,8 @@ $this->params['breadcrumbs'][] = $this->title;
                         <?=$event->name?>
                     </div>
                 <?endforeach;?>
+
             </div>
         </div>
     </div>
-
-
-
-
-
 </div>
